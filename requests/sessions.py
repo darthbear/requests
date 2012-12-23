@@ -63,7 +63,9 @@ def merge_kwargs(local_kwarg, default_kwarg):
 
 class SessionRedirectMixin(object):
 
-    def resolve_redirects(self, resp, req, stream=False, timeout=None, verify=True, cert=None, proxies=None):
+    def resolve_redirects(self, resp, req, stream=False, timeout=None, verify=True, cert=None, proxies=None, source_address=None):
+	print "================================================"
+	print source_address
         """Receives a Response. Returns a generator of Responses."""
 
         i = 0
@@ -120,7 +122,8 @@ class SessionRedirectMixin(object):
                     timeout=timeout,
                     verify=verify,
                     cert=cert,
-                    proxies=proxies
+                    proxies=proxies,
+		    source_address=source_address
                 )
 
             i += 1
@@ -173,6 +176,9 @@ class Session(SessionRedirectMixin):
         #: SSL certificate default.
         self.cert = None
 
+	#: Source address default
+	self.source_address = None
+
         #: Maximum number of redirects to follow.
         self.max_redirects = DEFAULT_REDIRECT_LIMIT
 
@@ -206,7 +212,8 @@ class Session(SessionRedirectMixin):
         hooks=None,
         stream=None,
         verify=None,
-        cert=None):
+        cert=None,
+	source_address=None):
 
         cookies = cookies or {}
         proxies = proxies or {}
@@ -248,7 +255,7 @@ class Session(SessionRedirectMixin):
         stream = merge_kwargs(stream, self.stream)
         verify = merge_kwargs(verify, self.verify)
         cert = merge_kwargs(cert, self.cert)
-
+        source_address = merge_kwargs(source_address, self.source_address)
 
         # Create the Request.
         req = Request()
@@ -266,14 +273,14 @@ class Session(SessionRedirectMixin):
         prep = req.prepare()
 
         # Send the request.
-        resp = self.send(prep, stream=stream, timeout=timeout, verify=verify, cert=cert, proxies=proxies)
+        resp = self.send(prep, stream=stream, timeout=timeout, verify=verify, cert=cert, proxies=proxies, source_address=source_address)
 
         # Persist cookies.
         for cookie in resp.cookies:
             self.cookies.set_cookie(cookie)
 
         # Redirect resolving generator.
-        gen = self.resolve_redirects(resp, req, stream=stream, timeout=timeout, verify=verify, cert=cert, proxies=proxies)
+        gen = self.resolve_redirects(resp, req, stream=stream, timeout=timeout, verify=verify, cert=cert, proxies=proxies, source_address=source_address)
 
         # Resolve redirects if allowed.
         history = [r for r in gen] if allow_redirects else []

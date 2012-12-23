@@ -110,7 +110,7 @@ class HTTPAdapter(BaseAdapter):
         response = dispatch_hook('response', req.hooks, response)
         return response
 
-    def get_connection(self, url, proxies=None):
+    def get_connection(self, url, proxies=None, source_address=None):
         """Returns a connection for the given URL."""
         proxies = proxies or {}
         proxy = proxies.get(urlparse(url).scheme)
@@ -118,7 +118,7 @@ class HTTPAdapter(BaseAdapter):
         if proxy:
             conn = proxy_from_url(proxy)
         else:
-            conn = self.poolmanager.connection_from_url(url)
+            conn = self.poolmanager.connection_from_url(url, source_address)
 
         return conn
 
@@ -130,10 +130,10 @@ class HTTPAdapter(BaseAdapter):
         """
         self.poolmanager.clear()
 
-    def send(self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None):
+    def send(self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None, source_address=None):
         """Sends PreparedRequest object. Returns Response object."""
 
-        conn = self.get_connection(request.url, proxies)
+        conn = self.get_connection(request.url, proxies, source_address)
 
         self.cert_verify(conn, request.url, verify, cert)
 

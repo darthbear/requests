@@ -67,7 +67,7 @@ class PoolManager(RequestMethods):
         """
         self.pools.clear()
 
-    def connection_from_host(self, host, port=None, scheme='http'):
+    def connection_from_host(self, host, port=None, scheme='http', source_address=None):
         """
         Get a :class:`ConnectionPool` based on the host, port, and scheme.
 
@@ -76,7 +76,10 @@ class PoolManager(RequestMethods):
         """
         port = port or port_by_scheme.get(scheme, 80)
 
-        pool_key = (scheme, host, port)
+	if source_address == None:
+            pool_key = (scheme, host, port)
+ 	else:
+            pool_key = (scheme, host, port, source_address)
 
         # If the scheme, host, or port doesn't match existing open connections,
         # open a new ConnectionPool.
@@ -86,13 +89,13 @@ class PoolManager(RequestMethods):
 
         # Make a fresh ConnectionPool of the desired type
         pool_cls = pool_classes_by_scheme[scheme]
-        pool = pool_cls(host, port, **self.connection_pool_kw)
+        pool = pool_cls(host, port, source_address=source_address, **self.connection_pool_kw)
 
         self.pools[pool_key] = pool
 
         return pool
 
-    def connection_from_url(self, url):
+    def connection_from_url(self, url, source_address):
         """
         Similar to :func:`urllib3.connectionpool.connection_from_url` but
         doesn't pass any additional parameters to the
@@ -102,7 +105,7 @@ class PoolManager(RequestMethods):
         constructor.
         """
         u = parse_url(url)
-        return self.connection_from_host(u.host, port=u.port, scheme=u.scheme)
+        return self.connection_from_host(u.host, port=u.port, scheme=u.scheme, source_address=source_address)
 
     def urlopen(self, method, url, redirect=True, **kw):
         """
