@@ -50,7 +50,6 @@ Features
 - Connection Timeouts
 - Thread-safety
 
-
 Installation
 ------------
 
@@ -68,7 +67,12 @@ Or, if you absolutely must:
 
 But, you really shouldn't do that.
 
+Small Update
+------------
 
+You can specify a source address as follows:
+s = requests.session()
+response = s.get("http://www.google.com", source_address=("192.168.1.1", 0))
 
 Contribute
 ----------
