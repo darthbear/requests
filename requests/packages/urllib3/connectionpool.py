@@ -166,6 +166,9 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
     :param headers:
         Headers to include with all requests, unless other headers are given
         explicitly.
+
+    :param source_address:
+        Source address to use for the connection
     """
 
     scheme = 'http'
